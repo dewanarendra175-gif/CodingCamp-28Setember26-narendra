@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense & Budget Visualizer</title>
+    <!-- Tailwind CSS untuk styling cepat & rapi -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js untuk grafik pie chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-6">
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        <!-- Judul Aplikasi & Tombol Dark Mode -->
+        <header class="flex justify-between items-center mb-6">
+    <div>
+        <h1 id="app-title" class="text-3xl font-bold text-gray-900">Expense & Budget Visualizer</h1>
+<p id="app-subtitle" class="text-gray-600 text-sm">Kelola keuangan harianmu dengan mudah</p>
+    </div>
+    <button onclick="toggleDarkMode()" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-xl text-sm font-semibold shadow transition">
+        🌓 Mode
+    </button>
+</header>
+
+        <!-- Bagian Total Balance & Limit -->
+        <div class="bg-white p-6 rounded-2xl shadow-md flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="w-full sm:w-auto">
+                <p class="text-sm text-gray-500 font-medium">Total Pengeluaran / Saldo</p>
+                <h2 id="total-balance" class="text-3xl font-bold text-indigo-600">Rp 0</h2>
+                <p id="limit-warning" class="text-xs font-semibold mt-1 text-gray-400">Belum ada batas pengeluaran yang diatur.</p>
+            </div>
+            
+            <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 w-full sm:w-auto justify-between sm:justify-start">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Batas Maksimal (Rp)</label>
+                    <input type="number" id="spending-limit" placeholder="Contoh: 500000" 
+                        class="px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 w-full">
+                </div>
+                <!-- Emoji uang di sini dipastikan aman sejajar -->
+                <div class="p-3 bg-indigo-50 rounded-xl text-indigo-600 text-xl flex items-center justify-center">
+                    💰
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Form Input Transaksi -->
+            <div class="bg-white p-6 rounded-2xl shadow-md">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Tambah Transaksi</h3>
+                <form id="transaction-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang / Transaksi</label>
+                        <input type="text" id="item-name" required placeholder="Contoh: Makan Siang" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah (Rp)</label>
+                        <input type="number" id="item-amount" required placeholder="Contoh: 25000" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                        <select id="item-category" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="Food">Food (Makanan)</option>
+                            <option value="Transport">Transport (Transportasi)</option>
+                            <option value="Fun">Fun (Hiburan)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                        Tambah Transaksi
+                    </button>
+                </form>
+            </div>
+
+            <!-- Visual Chart (Diagram Lingkaran) -->
+            <div class="bg-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2 self-start">Grafik Pengeluaran</h3>
+                <div class="w-full max-w-[250px]">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction List & Sort -->
+    <div class="bg-white p-6 rounded-2xl shadow-md space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h3 class="text-lg font-semibold text-gray-800">Daftar Transaksi</h3>
+            
+            <!-- Dropdown Sort Transaksi -->
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-medium text-gray-500">Urutkan:</label>
+                <select id="sort-select" onchange="updateApp()" class="px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <option value="default">Paling Baru</option>
+                    <option value="amount-desc">Nominal Terbesar</option>
+                    <option value="amount-asc">Nominal Terkecil</option>
+                    <option value="category">Berdasarkan Kategori</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto max-h-60 overflow-y-auto">
+            <ul id="transaction-list" class="divide-y divide-gray-200 space-y-2">
+                <p id="empty-message" class="text-gray-400 text-center py-4">Belum ada transaksi yang ditambahkan.</p>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Hubungkan ke file JavaScript -->
+    <script src="js/script.js"></script>
+</body>
+</html>

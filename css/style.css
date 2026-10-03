@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mode Gelap (Dark Mode) */
+.dark body {
+    background-color: #111827;
+    color: #f3f4f6;
+}
+
+.dark .bg-white {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+}
+
+.dark input, .dark select {
+    background-color: #374151 !important;
+    color: rgba(255, 255, 255, 0) !important;
+    border-color: #4b5563 !important;
+}
